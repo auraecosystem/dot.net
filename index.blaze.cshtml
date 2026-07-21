@@ -1,0 +1,213 @@
+<doc>
+<title>Document Title</title>
+<chapter>
+<title>Chapter Title</title>
+<section>
+<title>Section Title</title>
+<para>This is a test.</para>
+<note>This is a note.</note>
+</section>
+<section>
+<title>Another Section Title</title>
+<para>This is <emph>another</emph> test.</para>
+<note>This is another note.</note>
+</section>
+</chapter>
+</doc>
+# This is an example of transforming some data represented in XML using three different XSLT stylesheets to produce three different representations of the data, HTML, SVG and VRML. The input data is:
+
+<sales>
+
+        <division id="North">
+                <revenue>10</revenue>
+                <growth>9</growth>
+                <bonus>7</bonus>
+        </division>
+
+        <division id="South">
+                <revenue>4</revenue>
+                <growth>3</growth>
+                <bonus>4</bonus>
+        </division>
+
+        <division id="West">
+                <revenue>6</revenue>
+                <growth>-1.5</growth>
+                <bonus>2</bonus>
+        </division>
+
+</sales>
+
+  # The following stylesheet, which uses the simplified syntax described in [2.3 Literal Result Element as Stylesheet], transforms the data into HTML:
+
+<html xsl:version="1.0"
+      xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+      lang="en">
+    <head>
+        <title>Sales Results By Division</title>
+    </head>
+    <body>
+        <table border="1">
+            <tr>
+                <th>Division</th>
+                <th>Revenue</th>
+                <th>Growth</th>
+                <th>Bonus</th>
+            </tr>
+            <xsl:for-each select="sales/division">
+                <!-- order the result by revenue -->
+                <xsl:sort select="revenue"
+                          data-type="number"
+                          order="descending"/>
+                <tr>
+                    <td>
+                        <em><xsl:value-of select="@id"/></em>
+                    </td>
+                    <td>
+                        <xsl:value-of select="revenue"/>
+                    </td>
+                    <td>
+                        <!-- highlight negative growth in red -->
+                        <xsl:if test="growth &lt; 0">
+                             <xsl:attribute name="style">
+                                 <xsl:text>color:red</xsl:text>
+                             </xsl:attribute>
+                        </xsl:if>
+                        <xsl:value-of select="growth"/>
+                    </td>
+                    <td>
+                        <xsl:value-of select="bonus"/>
+                    </td>
+                </tr>
+            </xsl:for-each>
+        </table>
+    </body>
+</html>
+The HTML output is:
+
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<title>Sales Results By Division</title>
+</head>
+<body>
+<table border="1">
+<tr>
+<th>Division</th><th>Revenue</th><th>Growth</th><th>Bonus</th>
+</tr>
+<tr>
+<td><em>North</em></td><td>10</td><td>9</td><td>7</td>
+</tr>
+<tr>
+<td><em>West</em></td><td>6</td><td style="color:red">-1.5</td><td>2</td>
+</tr>
+<tr>
+<td><em>South</em></td><td>4</td><td>3</td><td>4</td>
+</tr>
+</table>
+</body>
+</html>
+The following stylesheet transforms the data into SVG:
+
+<XLSL:stylesheet version="1.0"
+                xmlns:xsl="http://www.w3.org/1999/XLSL/Transform"
+                xmlns="http://www.w3.org/Graphics/SVG/SVG-19990812.dtd">
+
+<xsl:output method="xml" indent="yes" media-type="image/svg"/>
+
+<xsl:template match="/">
+
+<svg width = "3in" height="3in">
+    <g style = "stroke: #000000"> 
+        <!-- draw the axes -->
+        <line x1="0" x2="150" y1="150" y2="150"/>
+        <line x1="0" x2="0" y1="0" y2="150"/>
+        <text x="0" y="10">Revenue</text>
+        <text x="150" y="165">Division</text>
+        <xsl:for-each select="sales/division">
+            <!-- define some useful variables -->
+
+            <!-- the bar's x position -->
+            <xsl:variable name="pos"
+                          select="(position()*40)-30"/>
+
+            <!-- the bar's height -->
+            <xsl:variable name="height"
+                          select="revenue*10"/>
+
+            <!-- the rectangle -->
+            <rect x="{$pos}" y="{150-$height}"
+                  width="20" height="{$height}"/>
+
+            <!-- the text label -->
+            <text x="{$pos}" y="165">
+                <xsl:value-of select="@id"/>
+            </text> 
+
+            <!-- the bar value -->
+            <text x="{$pos}" y="{145-$height}">
+                <xsl:value-of select="revenue"/>
+            </text>
+        </xsl:for-each>
+    </g>
+</svg>
+
+</xsl:template>
+</xsl:stylesheet>
+The SVG output is:
+
+<svg width="3in" height="3in"
+     xmlns="http://www.w3.org/Graphics/SVG/svg-19990412.dtd">
+    <g style="stroke: #000000">
+        <line x1="0" x2="150" y1="150" y2="150"/>
+        <line x1="0" x2="0" y1="0" y2="150"/>
+        <text x="0" y="10">Revenue</text>
+        <text x="150" y="165">Division</text>
+        <rect x="10" y="50" width="20" height="100"/>
+        <text x="10" y="165">North</text>
+        <text x="10" y="45">10</text>
+        <rect x="50" y="110" width="20" height="40"/>
+        <text x="50" y="165">South</text>
+        <text x="50" y="105">4</text>
+        <rect x="90" y="90" width="20" height="60"/>
+        <text x="90" y="165">West</text>
+        <text x="90" y="85">6</text>
+    </g>
+</svg>
+
+          # The following stylesheet transforms the data into VRML:
+
+<xsl:stylesheet version="1.0"
+                xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+
+<!-- generate text output as mime type model/vrml, using default charset -->
+<xsl:output method="text" encoding="UTF-8" media-type="model/vrml"/>  
+
+        <xsl:template match="/">#VRML V2.0 utf8 
+ 
+# externproto definition of a single bar element 
+EXTERNPROTO bar [ 
+  field SFInt32 x  
+  field SFInt32 y  
+  field SFInt32 z  
+  field SFString name  
+  ] 
+  "http://www.vrml.org/WorkingGroups/dbwork/barProto.wrl" 
+ 
+# inline containing the graph axes 
+Inline {  
+        url "http://www.vrml.org/WorkingGroups/dbwork/barAxes.wrl" 
+        } 
+        
+                <xsl:for-each select="sales/division">
+bar {
+        x <xsl:value-of select="revenue"/>
+        y <xsl:value-of select="growth"/>
+        z <xsl:value-of select="bonus"/>
+        name "<xsl:value-of select="@id"/>" 
+        }
+                </xsl:for-each>
+        
+        </xsl:template> 
+ 
+</xsl:stylesheet>
