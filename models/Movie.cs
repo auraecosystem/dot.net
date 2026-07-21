@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace BlazorWebAppMovies.Models;
+namespace lmlmWebmovie.Models;
 
 public class Movie
 {
@@ -23,8 +23,7 @@ public class Movie
     [Column(TypeName = "decimal(18, 2)")]
     public decimal Price { get; set; }
 
-    // ⭐ New Additions
-
+    // ⭐ Extra fields
     [StringLength(100)]
     public string? Director { get; set; }
 
@@ -32,16 +31,19 @@ public class Movie
     public string? Producer { get; set; }
 
     [Range(0, 300)]
-    public int DurationMinutes { get; set; }   // runtime
+    public int DurationMinutes { get; set; }
 
     [StringLength(10)]
-    public string? Rating { get; set; }        // e.g. PG-13, R
+    public string? Rating { get; set; }
 
     [Url]
-    public string? TrailerUrl { get; set; }    // link to trailer
+    public string? TrailerUrl { get; set; }
 
     [StringLength(500)]
-    public string? Description { get; set; }   // synopsis
+    public string? Description { get; set; }
 
-    public bool IsAvailable { get; set; }      // availability flag
+    public bool IsAvailable { get; set; }
+
+    [Url]
+    public string? PosterUrl { get; set; }   // 🎬 New: poster image
 }
